@@ -12,7 +12,7 @@ router = APIRouter(prefix="/ask")
 # ---------- costruisci / ricarica l'indice ----------
 DOC_PATH = "data"
 DB_PATH = "data/chroma"
-emb = OpenAIEmbeddings()
+emb = OpenAIEmbeddings(model="text-embedding-3-small")
 
 # 1. carica tutti i PDF che esistono
 docs = []
