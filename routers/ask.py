@@ -34,7 +34,8 @@ qa = RetrievalQA.from_chain_type(
         return_source_documents=True)
 # -----------------------------------------------------
 
-@router.post("")
+@router.post("/ask")      #  ← esiste già
+@router.get("/ask")       #  ← AGGIUNGI questa sola riga
 async def ask(question: str):
     """
     Fai una domanda e ottieni risposta + fonti.
