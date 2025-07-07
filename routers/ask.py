@@ -10,25 +10,33 @@ import glob, os
 router = APIRouter(prefix="/ask")
 
 # ---------- costruisci / ricarica l'indice ----------
-DOC_PATH = "data"            # volume Railway
-DB_PATH  = "data/chroma"
+DOC_PATH = "data"
+DB_PATH = "data/chroma"
 emb = OpenAIEmbeddings()
 
-if not os.path.exists(DB_PATH):
-    docs = []
+# 1. carica tutti i PDF che esistono
+docs = []
 for pdf in glob.glob(f"{DOC_PATH}/*.pdf"):
     docs.extend(PyPDFLoader(pdf).load())
 
-if docs:                                     # ← evita l'errore se è vuoto
+# 2. se l'indice non esiste o non è ancora popolato, crealo
+if docs and not os.path.exists(DB_PATH):
     chunks = RecursiveCharacterTextSplitter(
-                chunk_size=500, chunk_overlap=50
-             ).split_documents(docs)
+        chunk_size=500,
+        chunk_overlap=50
+    ).split_documents(docs)
+
     vectordb = Chroma.from_documents(
-                chunks, emb, persist_directory=DB_PATH)
+        chunks, emb, persist_directory=DB_PATH
+    )
     vectordb.persist()
 else:
-    vectordb = Chroma(persist_directory=DB_PATH, embedding_function=emb)
-
+    # se non ci sono PDF o l'indice già esiste,
+    # carica (o crea vuoto) senza andare in errore
+    vectordb = Chroma(
+        persist_directory=DB_PATH,
+        embedding_function=emb
+    )
 
 retriever = vectordb.as_retriever(search_k=3)
 qa = RetrievalQA.from_chain_type(
