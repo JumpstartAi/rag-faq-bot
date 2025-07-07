@@ -16,15 +16,19 @@ emb = OpenAIEmbeddings()
 
 if not os.path.exists(DB_PATH):
     docs = []
-    for pdf in glob.glob(f"{DOC_PATH}/*.pdf"):
-        docs.extend(PyPDFLoader(pdf).load())
+for pdf in glob.glob(f"{DOC_PATH}/*.pdf"):
+    docs.extend(PyPDFLoader(pdf).load())
+
+if docs:                                     # ← evita l'errore se è vuoto
     chunks = RecursiveCharacterTextSplitter(
-                chunk_size=500, chunk_overlap=50).split_documents(docs)
+                chunk_size=500, chunk_overlap=50
+             ).split_documents(docs)
     vectordb = Chroma.from_documents(
                 chunks, emb, persist_directory=DB_PATH)
     vectordb.persist()
 else:
     vectordb = Chroma(persist_directory=DB_PATH, embedding_function=emb)
+
 
 retriever = vectordb.as_retriever(search_k=3)
 qa = RetrievalQA.from_chain_type(
