@@ -10,8 +10,8 @@ import glob, os
 router = APIRouter(prefix="/ask")
 
 # ---------- costruisci / ricarica l'indice ----------
-DOC_PATH = "/data"            # volume Railway
-DB_PATH  = "/data/chroma"
+DOC_PATH = "data"            # volume Railway
+DB_PATH  = "data/chroma"
 emb = OpenAIEmbeddings()
 
 if not os.path.exists(DB_PATH):
