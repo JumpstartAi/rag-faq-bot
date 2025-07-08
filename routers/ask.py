@@ -7,11 +7,12 @@ from langchain.chat_models import ChatOpenAI
 from langchain.chains import RetrievalQA
 import glob, os
 
-router = APIRouter(prefix="/ask")
+# ⇢  ROUTER senza prefisso: le rotte si dichiarano esplicitamente 
+router = APIRouter()
 
-# ---------- costruisci / ricarica l'indice ----------
+# ---------- indicizzazione ----------
 DOC_PATH = "data"
-DB_PATH = "data/chroma"
+DB_PATH  = "data/chroma"
 emb = OpenAIEmbeddings(model="text-embedding-ada-002")
 
 docs = []
@@ -31,7 +32,7 @@ else:
         persist_directory=DB_PATH,
         embedding_function=emb
     )
-
+# ---------- chain ----------
 retriever = vectordb.as_retriever(search_k=3)
 qa = RetrievalQA.from_chain_type(
     llm=ChatOpenAI(model_name="gpt-4o-mini", temperature=0),
@@ -39,10 +40,10 @@ qa = RetrievalQA.from_chain_type(
     retriever=retriever,
     return_source_documents=True
 )
-# -----------------------------------------------------
+# ------------------------------------
 
-@router.post("")
-@router.get("")
+@router.post("/ask")
+@router.get("/ask")
 async def ask(question: str = Body(..., embed=True)):
     """
     Fai una domanda e ottieni risposta + fonti.
