@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Body
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.vectorstores import Chroma
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -14,25 +14,19 @@ DOC_PATH = "data"
 DB_PATH = "data/chroma"
 emb = OpenAIEmbeddings(model="text-embedding-ada-002")
 
-# 1. carica tutti i PDF che esistono
 docs = []
 for pdf in glob.glob(f"{DOC_PATH}/*.pdf"):
     docs.extend(PyPDFLoader(pdf).load())
 
-# 2. se l'indice non esiste o non è ancora popolato, crealo
 if docs and not os.path.exists(DB_PATH):
     chunks = RecursiveCharacterTextSplitter(
-        chunk_size=500,
-        chunk_overlap=50
+        chunk_size=500, chunk_overlap=50
     ).split_documents(docs)
-
     vectordb = Chroma.from_documents(
         chunks, emb, persist_directory=DB_PATH
     )
     vectordb.persist()
 else:
-    # se non ci sono PDF o l'indice già esiste,
-    # carica (o crea vuoto) senza andare in errore
     vectordb = Chroma(
         persist_directory=DB_PATH,
         embedding_function=emb
@@ -40,10 +34,11 @@ else:
 
 retriever = vectordb.as_retriever(search_k=3)
 qa = RetrievalQA.from_chain_type(
-        llm=ChatOpenAI(model_name="gpt-4o-mini", temperature=0),
-        chain_type="stuff",
-        retriever=retriever,
-        return_source_documents=True)
+    llm=ChatOpenAI(model_name="gpt-4o-mini", temperature=0),
+    chain_type="stuff",
+    retriever=retriever,
+    return_source_documents=True
+)
 # -----------------------------------------------------
 
 @router.post("")
