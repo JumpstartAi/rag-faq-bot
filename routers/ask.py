@@ -46,14 +46,14 @@ qa = RetrievalQA.from_chain_type(
         return_source_documents=True)
 # -----------------------------------------------------
 
-@router.post("")      #  ← esiste già
-@router.get("")       #  ← AGGIUNGI questa sola riga
-async def ask(question: str):
+@router.post("")
+@router.get("")
+async def ask(question: str = Body(..., embed=True)):
     """
     Fai una domanda e ottieni risposta + fonti.
     """
     resp = qa(question)
     return {
         "answer": resp["result"],
-        "sources": [d.metadata.get("source", "") for d in resp["source_documents"]]
+        "sources": [d.metadata.get("source", "") for d in resp["source_documents"]],
     }
